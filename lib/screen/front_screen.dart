@@ -1,5 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:project_practice/screen/login_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:project_practice/screen/home_screen.dart';
 
 class FrontScreen extends StatefulWidget {
   const FrontScreen({super.key});
@@ -9,6 +12,41 @@ class FrontScreen extends StatefulWidget {
 }
 
 class _FrontScreenState extends State<FrontScreen> {
+
+  @override
+  void initState() {
+    super.initState();
+
+    Timer(const Duration(seconds: 5), () async {
+      final prefs = await SharedPreferences.getInstance();
+
+      bool isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+      if (!mounted) return;
+
+      if (isLoggedIn) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeScreen(
+              userName: prefs.getString('userName') ?? '',
+              userEmail: prefs.getString('userEmail') ?? '',
+              myCartItems: [],
+              globalOrderList: [],
+            ),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const LoginScreen(),
+          ),
+        );
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -45,25 +83,6 @@ class _FrontScreenState extends State<FrontScreen> {
                     style: TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.bold,
-                    ),
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  GestureDetector(
-                    onTap: (){
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LoginScreen(),
-                        ),
-                      );
-                    },
-                    child: Text("Start",
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
                     ),
                   ),
                 ],

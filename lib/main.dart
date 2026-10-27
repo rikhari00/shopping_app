@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:project_practice/screen/front_screen.dart';
 
-void main(){
+void main() {
   runApp(MyApp());
 }
 
@@ -16,4 +16,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-

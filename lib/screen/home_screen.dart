@@ -1,15 +1,22 @@
-import'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:project_practice/screen/cart_screen.dart';
 import 'package:project_practice/screen/profile_screen.dart';
+import 'package:project_practice/screen/categories_product_screen.dart';
+import 'package:project_practice/screen/order_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-
   final String userName;
   final String userEmail;
 
-  const HomeScreen({super.key,
+  final List<Map<String, dynamic>> myCartItems;
+  final List<Map<String, dynamic>> globalOrderList;
+
+  const HomeScreen({
+    super.key,
     required this.userName,
     required this.userEmail,
+    required this.myCartItems,
+    required this.globalOrderList,
   });
 
   @override
@@ -25,13 +32,14 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   //Discount List
-  final List<Map<String, dynamic>> discountOffers = <Map<String, dynamic>> [
+  final List<Map<String, dynamic>> discountOffers = <Map<String, dynamic>>[
     {
       "Title": "Electronic Special Offer",
       "Discount": "50% Off",
       "Code": "welcome10",
       "Color": Colors.orange.shade100,
     },
+
     {
       "Title": "Fashion Special",
       "Discount": "50% Off",
@@ -42,46 +50,37 @@ class _HomeScreenState extends State<HomeScreen> {
 
   //Categories List
   final List<Map<String, dynamic>> categories = [
-    {
-      "Name": "Fashion",
-      "icon": Icon(Icons.person)
-    },
 
-    {
-      "Name": "Electronic",
-      "icon": Icon(Icons.phone_android_outlined)
-    },
+    {"Name": "Fashion", "icon": Icon(Icons.person)},
 
-    {
-      "Name": "Home",
-      "icon": Icon(Icons.home_work_outlined)
-    },
+    {"Name": "Electronic", "icon": Icon(Icons.phone_android_outlined)},
 
-    {
-      "Name": "Sports",
-      "icon": Icon(Icons.sports_baseball)
-    },
+    {"Name": "Home", "icon": Icon(Icons.home_work_outlined)},
 
-    {
-      "Name": "Beauty",
-      "icon": Icon(Icons.face_rounded)
-    },
+    {"Name": "Sports", "icon": Icon(Icons.sports_baseball)},
+
+    {"Name": "Beauty", "icon": Icon(Icons.face_rounded)},
   ];
 
   // Variable for Bottom Navigation Bar
   int _selectedIndex = 0;
 
+  final TextEditingController searchController = TextEditingController();
+   String searchQuery = '';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Home Page",
+        title: Text(
+          "Home Page",
           style: TextStyle(
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
+              fontSize: 28,
+              fontWeight: FontWeight.bold
           ),
         ),
         backgroundColor: Colors.deepPurple.shade300,
+        foregroundColor: Colors.white,
       ),
 
       body: Stack(
@@ -109,11 +108,10 @@ class _HomeScreenState extends State<HomeScreen> {
           //Search Bar
           SingleChildScrollView(
             child: Padding(
-                padding: EdgeInsets.all(12),
+              padding: EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  
                   TextFormField(
                     decoration: InputDecoration(
                       labelText: "Search",
@@ -126,27 +124,29 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.bold,
                         fontSize: 22,
                       ),
-                      prefixIcon: Icon(Icons.search,
-                        size: 30,
-                      ),
+                      prefixIcon: Icon(Icons.search, size: 30),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
+                    onChanged: (value){
+                      setState(() {
+                        searchQuery = value.toLowerCase().trim();
+                      });
+                    },
                   ),
 
                   //Categories
                   const SizedBox(height: 10),
-
-                  Text("Categories: ",
+                  Text(
+                    "Categories: ",
                     style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                        fontWeight: FontWeight.bold
                     ),
                   ),
 
                   const SizedBox(height: 10),
-
                   SizedBox(
                     height: 110,
                     child: ListView.builder(
@@ -155,25 +155,40 @@ class _HomeScreenState extends State<HomeScreen> {
                       itemBuilder: (context, index) {
                         final category = categories[index];
 
-                        return Padding(
-                            padding: EdgeInsets.only(right: 16),
-                          child: Column(
-                            children: [
-                              CircleAvatar(
-                                child: category["icon"],
-                                radius: 25,
-                                backgroundColor: Colors.deepPurple.shade100,
-                              ),
-
-                              const SizedBox(height: 10),
-                              Text(
-                                category["Name"],
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
+                        return InkWell(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CategoriesProductScreen(
+                                  categoriesName: category["Name"],
+                                  myCartItems: widget.myCartItems,
+                                  items: widget.globalOrderList,
                                 ),
                               ),
-                            ],
+                            );
+                          },
+
+                          child: Padding(
+                            padding: EdgeInsets.only(right: 16),
+                            child: Column(
+                              children: [
+                                CircleAvatar(
+                                  child: category["icon"],
+                                  radius: 25,
+                                  backgroundColor: Colors.deepPurple.shade100,
+                                ),
+
+                                const SizedBox(height: 10),
+                                Text(
+                                  category["Name"],
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },
@@ -187,77 +202,73 @@ class _HomeScreenState extends State<HomeScreen> {
                     height: 160,
 
                     child: PageView.builder(
-                        itemCount: banner.length,
-                        itemBuilder: (context, index) {
-                          return Container(
-                            margin: EdgeInsets.symmetric(
-                                horizontal: 5
+                      itemCount: banner.length,
+                      itemBuilder: (context, index) {
+                        return Container(
+                          margin: EdgeInsets.symmetric(horizontal: 5),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12),
+                            image: DecorationImage(
+                              image: NetworkImage(banner[index]),
+                              fit: BoxFit.cover,
                             ),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              image: DecorationImage(
-                                  image: NetworkImage(banner[index]),
-                                fit: BoxFit.cover,
-                              ),
-                            ),
-                          );
-                        }
+                          ),
+                        );
+                      },
                     ),
                   ),
 
                   //Discount Offer Card
                   const SizedBox(height: 15),
-
                   SizedBox(
                     height: 200,
                     child: ListView.builder(
-                        scrollDirection: Axis.horizontal,
-                        itemCount:discountOffers.length ,
-                        itemBuilder: (context, index) {
-                          final offer = discountOffers[index];
+                      scrollDirection: Axis.horizontal,
+                      itemCount: discountOffers.length,
+                      itemBuilder: (context, index) {
+                        final offer = discountOffers[index];
 
-                           return Container(
-                             width: 240,
-                             margin: EdgeInsets.only(right: 14),
-                             padding: EdgeInsets.all(12),
-                             decoration: BoxDecoration(
-                               color: offer["Color"],
-                               borderRadius: BorderRadius.circular(12),
-                             ),
-                             child: Column(
-                               crossAxisAlignment: CrossAxisAlignment.start,
-                               mainAxisAlignment: MainAxisAlignment.center,
-                               children: [
-                                 Text(
-                                   offer["Title"],
-                                   style: TextStyle(
-                                     fontSize: 24,
-                                     fontWeight: FontWeight.bold,
-                                   ),
-                                 ),
-                                 const SizedBox(height: 10),
+                        return Container(
+                          width: 240,
+                          margin: EdgeInsets.only(right: 14),
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: offer["Color"],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                offer["Title"],
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
 
-                                 Text(
-                                   offer["Discount"],
-                                   style: TextStyle(
-                                     fontSize: 22,
-                                     fontWeight: FontWeight.bold
-                                   ),
-                                 ),
+                              const SizedBox(height: 10),
+                              Text(
+                                offer["Discount"],
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
 
-                                 const SizedBox(height: 10),
-
-                                 Text(
-                                   offer["Code"],
-                                   style: TextStyle(
-                                     fontSize: 22,
-                                     fontWeight: FontWeight.bold,
-                                   ),
-                                 ),
-                               ],
-                             ),
-                           );
-                        }
+                              const SizedBox(height: 10),
+                              Text(
+                                offer["Code"],
+                                style: TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                   ),
                 ],
@@ -269,38 +280,68 @@ class _HomeScreenState extends State<HomeScreen> {
 
       //Bottom Navigation Bar
       bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
-        onTap: (index){
+
+        backgroundColor: Colors.pink.shade100,
+        selectedItemColor: Colors.deepPurple,
+        unselectedItemColor: Colors.grey.shade700,
+
+        selectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+        ),
+
+        unselectedLabelStyle: const TextStyle(
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        ),
+
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
+        elevation: 8,
+
+        onTap: (index) {
           setState(() {
             _selectedIndex = index;
           });
 
-          if(index == 0){
+          if (index == 0) {
             _selectedIndex = 0;
-          }
-          else if(index == 1){
+          } else if (index == 1) {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const CartScreen()
+                builder: (context) => CartScreen(
+                    cartItems: widget.myCartItems,
+                  globalOrderList: widget.globalOrderList,
+                ),
               ),
             );
+          } else if ( index == 2){
+              Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => OrderScreen(
+                      orderItems: widget.globalOrderList,
+                      globalOrderList: widget.globalOrderList,
+                  )
+              )
+            );
           }
-          else if(index == 2){
+          else if (index == 3) {
             Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => ProfileScreen(
-                    userName: widget.userName,
-                    userEmail : widget.userEmail,
-                  ),
+                builder: (context) => ProfileScreen(
+                  userName: widget.userName,
+                  userEmail: widget.userEmail,
+                ),
               ),
             );
           }
         },
 
-        unselectedItemColor: Colors.grey.shade700,
-        backgroundColor: Colors.pink.shade100,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home, size: 30),
@@ -308,13 +349,23 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
 
           BottomNavigationBarItem(
-              icon: Icon(Icons.shopping_bag, size: 30),
-              label: "My Cart"
+            icon: Icon(Icons.shopping_bag,
+                size: 30
+            ),
+            label: "My Cart",
           ),
 
           BottomNavigationBarItem(
-              icon: Icon(Icons.person, size: 30),
-              label: "Profile"
+              icon: Icon(Icons.shopping_cart,
+                size: 30,
+              ),
+            label: "Order",
+          ),
+
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person,
+                size: 30),
+            label: "Profile",
           ),
         ],
       ),

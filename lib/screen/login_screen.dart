@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:project_practice/screen/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,6 +14,9 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+
+  final List<Map<String, dynamic>> myCartItems = [];
+  final List<Map<String, dynamic>> orderList = [];
   bool isObsecure = true;
 
   @override
@@ -23,20 +27,33 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _submitForm() {
+  Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
-      String email = emailController.text;
+      String email = emailController.text.trim();
+      String userName = userNameController.text.trim();
+
+      final prefs = await SharedPreferences.getInstance();
+
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('userName', userName);
+      await prefs.setString('userEmail', email);
+
+      if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Login with $email")),
+        SnackBar(
+          content: Text("Login with $email"),
+        ),
       );
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => const HomeScreen(
-            userName: userNameController.text,
-           userEmail: emailController.text,
+          builder: (context) => HomeScreen(
+            userName: userName,
+            userEmail: email,
+            myCartItems: myCartItems,
+            globalOrderList: orderList,
           ),
         ),
       );
@@ -55,7 +72,9 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         backgroundColor: Colors.deepPurple.shade300,
+        foregroundColor: Colors.white,
       ),
+
       body: Stack(
         children: [
 
@@ -95,6 +114,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
+
                     const SizedBox(height: 10),
                     const Center(
                       child: Icon(
@@ -103,8 +123,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: Colors.purple,
                       ),
                     ),
-                    const SizedBox(height: 10),
 
+                    const SizedBox(height: 10),
                     // UserName
                     const Text(
                       "UserName",
@@ -113,6 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.bold
                       ),
                     ),
+
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: userNameController,
@@ -141,8 +162,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 12),
 
+                    const SizedBox(height: 12),
                     // Email Address
                     const Text(
                       "Email Address",
@@ -151,6 +172,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.bold
                       ),
                     ),
+
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: emailController,
@@ -176,14 +198,35 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (value == null || value.isEmpty) {
                           return "Please enter your email address";
                         }
+                        bool hasLetter = false;
+                        bool hasNumber = false;
+
+                        String username = value.split('@')[0];
+
+                        for (int i = 0; i < username.length; i++) {
+                          var char = username[i];
+
+                          if (int.tryParse(char) != null) {
+                            hasNumber = true;
+                          }
+                          else if ((char.compareTo('a') >= 0 && char.compareTo('z') <= 0) ||
+                              (char.compareTo('A') >= 0 && char.compareTo('Z') <= 0)) {
+                            hasLetter = true;
+                          }
+                        }
+
+                        if (!hasLetter || !hasNumber) {
+                          return "Email must contain both letters and numbers";
+                        }
+
                         if (!value.contains('@') || !value.contains('.')) {
                           return "Please enter a valid email address";
                         }
                         return null;
                       },
                     ),
-                    const SizedBox(height: 12),
 
+                    const SizedBox(height: 12),
                     // Password
                     const Text(
                       "Password",
@@ -192,6 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           fontWeight: FontWeight.bold
                       ),
                     ),
+
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: passwordController,
@@ -236,8 +280,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         return null;
                       },
                     ),
-                    const SizedBox(height: 24),
 
+                    const SizedBox(height: 24),
                     Center(
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
